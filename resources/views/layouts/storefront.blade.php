@@ -60,7 +60,10 @@
         .scroll-animate { opacity: 0; }
     </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col selection:bg-amber-600 selection:text-white">
+<body class="antialiased min-h-screen flex flex-col selection:bg-amber-600 selection:text-white relative">
+    
+    <!-- Ambient Golden Particles -->
+    <canvas id="luxury-particles" class="fixed inset-0 pointer-events-none z-40 opacity-80"></canvas>
 
     <!-- Sticky Navigation -->
     <nav class="fixed w-full z-50 glass-nav transition-all duration-300">
@@ -75,7 +78,7 @@
                     <div class="ml-10 flex items-center space-x-6">
                         <a href="{{ route('public.landing') }}" class="hover:text-amber-400 text-zinc-300 px-3 py-2 rounded-md text-sm font-medium transition-colors tracking-wide uppercase">{{ __('Home') }}</a>
                         <a href="{{ url('/instructions') }}" class="hover:text-amber-400 text-zinc-300 px-3 py-2 rounded-md text-sm font-medium transition-colors tracking-wide uppercase">{{ __('How It Works') }}</a>
-                        <a href="{{ url('/order') }}" class="luxury-bg text-zinc-950 px-5 py-2.5 rounded-sm text-sm font-bold transition-transform hover:scale-105 tracking-wide uppercase shadow-[0_0_15px_rgba(212,175,55,0.3)]">{{ __('Book Service') }}</a>
+                        <a href="{{ url('/order') }}" class="magnetic-btn inline-block luxury-bg text-zinc-950 px-5 py-2.5 rounded-sm text-sm font-bold tracking-wide uppercase shadow-[0_0_15px_rgba(212,175,55,0.3)]">{{ __('Book Service') }}</a>
                         
                         <!-- Language Switcher -->
                         <div class="flex items-center gap-2 border-l border-zinc-800 pl-6 ml-2">
@@ -137,6 +140,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // 1. Scroll Animations (Fade In Up)
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
@@ -149,6 +153,109 @@
             document.querySelectorAll('.scroll-animate').forEach((el) => {
                 observer.observe(el);
             });
+
+            // 2. Ambient Golden Particles
+            const canvas = document.getElementById('luxury-particles');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                let particlesArray;
+                
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                
+                class Particle {
+                    constructor() {
+                        this.x = Math.random() * canvas.width;
+                        this.y = Math.random() * canvas.height;
+                        this.size = Math.random() * 2.5 + 1; // Bigger size
+                        this.speedX = Math.random() * 0.4 - 0.2;
+                        this.speedY = Math.random() * 0.6 - 0.6; // Drift up faster
+                    }
+                    update() {
+                        this.x += this.speedX;
+                        this.y += this.speedY;
+                        if (this.x < 0 || this.x > canvas.width || this.y < 0) {
+                            this.x = Math.random() * canvas.width;
+                            this.y = canvas.height;
+                            this.size = Math.random() * 2.5 + 1;
+                        }
+                    }
+                    draw() {
+                        ctx.fillStyle = 'rgba(212, 175, 55, 0.9)'; // More opaque gold
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+                
+                function initParticles() {
+                    particlesArray = [];
+                    for (let i = 0; i < 100; i++) { // More particles
+                        particlesArray.push(new Particle());
+                    }
+                }
+                initParticles();
+                
+                function animateParticles() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    for (let i = 0; i < particlesArray.length; i++) {
+                        particlesArray[i].update();
+                        particlesArray[i].draw();
+                    }
+                    requestAnimationFrame(animateParticles);
+                }
+                animateParticles();
+                
+                window.addEventListener('resize', () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                    initParticles();
+                });
+            }
+
+            // 3. Magnetic Buttons
+            document.querySelectorAll('.magnetic-btn').forEach(btn => {
+                btn.addEventListener('mousemove', (e) => {
+                    const rect = btn.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    // Move the button slightly towards the cursor
+                    btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+                    btn.style.transition = "none"; // Remove CSS transition for snappy tracking
+                });
+                
+                btn.addEventListener('mouseleave', () => {
+                    btn.style.transition = "transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)";
+                    btn.style.transform = 'translate(0px, 0px)';
+                });
+            });
+
+            // 4. Parallax Hero Float Tracking
+            const hero = document.getElementById('parallax-hero');
+            const heroBg = document.getElementById('parallax-bg');
+            const heroContent = document.getElementById('parallax-content');
+            
+            if (hero) {
+                hero.addEventListener('mousemove', (e) => {
+                    // Calculate mouse position relative to center of screen
+                    const x = (window.innerWidth / 2 - e.clientX) / 30;
+                    const y = (window.innerHeight / 2 - e.clientY) / 30;
+                    
+                    // Move background subtly in opposite direction
+                    if (heroBg) {
+                        heroBg.style.transform = `translate(${x * 0.5}px, ${y * 0.5}px) scale(1.05)`;
+                    }
+                    // Move content slightly in same direction to create 3D glass depth
+                    if (heroContent) {
+                        heroContent.style.transform = `translate(${x * -0.8}px, ${y * -0.8}px)`;
+                    }
+                });
+                
+                hero.addEventListener('mouseleave', () => {
+                    if (heroBg) heroBg.style.transform = `translate(0px, 0px) scale(1.05)`;
+                    if (heroContent) heroContent.style.transform = `translate(0px, 0px)`;
+                });
+            }
         });
     </script>
 </body>

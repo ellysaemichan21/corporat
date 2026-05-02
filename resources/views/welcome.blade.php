@@ -2,13 +2,13 @@
 
 @section('content')
 <!-- Hero Section -->
-<div class="relative overflow-hidden bg-zinc-950 pt-40 pb-20 lg:pt-64 lg:pb-32">
+<div id="parallax-hero" class="relative overflow-hidden bg-zinc-950 pt-40 pb-20 lg:pt-64 lg:pb-32">
     <div class="absolute inset-0 z-0">
         <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-zinc-950/10 z-10"></div>
-        <img src="{{ asset('test/images/1.png') }}" alt="Facade" class="w-full h-full object-cover object-top opacity-60 mix-blend-overlay">
+        <img id="parallax-bg" src="{{ asset('test/images/1.png') }}" alt="Facade" class="w-full h-full object-cover object-top opacity-60 mix-blend-overlay scale-105 transition-transform duration-700 ease-out">
     </div>
 
-    <div class="relative z-20 max-w-7xl mx-auto px-6 lg:px-8 text-center scroll-animate">
+    <div id="parallax-content" class="relative z-20 max-w-7xl mx-auto px-6 lg:px-8 text-center scroll-animate transition-transform duration-700 ease-out">
         <h1 class="text-5xl md:text-7xl font-serif font-bold tracking-tight text-white mb-6 leading-tight drop-shadow-lg scroll-animate delay-100">
             {{ __('Redefining Laundry for the Elite') }}
         </h1>
@@ -22,7 +22,7 @@
         </p>
         
         <div class="flex justify-center scroll-animate delay-400">
-            <a href="{{ url('/order') }}" class="luxury-bg text-zinc-950 px-10 py-5 rounded-sm text-lg font-bold transition-all hover:scale-105 tracking-wider uppercase shadow-[0_0_30px_rgba(212,175,55,0.3)]">
+            <a href="{{ url('/order') }}" class="magnetic-btn inline-block luxury-bg text-zinc-950 px-10 py-5 rounded-sm text-lg font-bold tracking-wider uppercase shadow-[0_0_30px_rgba(212,175,55,0.3)]">
                 {{ __('Secure Your Collection') }}
             </a>
         </div>
