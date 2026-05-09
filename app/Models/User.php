@@ -45,4 +45,10 @@ class User extends Authenticatable
     {
         return !is_null($this->partner_id);
     }
+
+    /** Link to the customer profile (for auto-fill details) */
+    public function customer()
+    {
+        return $this->hasOne(Customer::class);
+    }
 }

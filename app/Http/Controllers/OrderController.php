@@ -20,11 +20,16 @@ class OrderController extends Controller
             ->get();
 
         $partners = \App\Models\Partner::orderBy('name')->get(['id', 'name']);
+        $userCustomer = null;
+        if (auth()->check() && !auth()->user()->isPartner()) {
+            $userCustomer = auth()->user()->customer;
+        }
 
         return view('public.order.create', [
-            'services' => $services,
-            'tiers'    => $services->groupBy(fn (\App\Models\Service $s) => $s->tier?->name ?? 'Other'),
-            'partners' => $partners,
+            'services'     => $services,
+            'tiers'        => $services->groupBy(fn (\App\Models\Service $s) => $s->tier?->name ?? 'Other'),
+            'partners'     => $partners,
+            'userCustomer' => $userCustomer,
         ]);
     }
 
@@ -44,21 +49,31 @@ class OrderController extends Controller
 
         // Email is present in the form for UX, but as per schema we omit it here.
 
-        // Retrieve existing customer by phone or create a new one
-        $customer = Customer::firstOrCreate(
-            ['phone' => $validated['phone']],
-            [
-                'name' => $validated['name'],
-                'address' => $validated['pickup_address'] ?? $validated['name'], // Fallback
-                'tier_preference' => $validated['tier_preference'],
-            ]
-        );
+        // Retrieve existing customer by phone or user_id, or create a new one
+        $customer = null;
+        if (auth()->check()) {
+            $customer = auth()->user()->customer;
+        }
+
+        if (!$customer) {
+            $customer = Customer::firstOrCreate(
+                ['phone' => $validated['phone']],
+                [
+                    'name' => $validated['name'],
+                    'address' => $validated['pickup_address'] ?? $validated['name'],
+                    'tier_preference' => $validated['tier_preference'],
+                    'user_id' => auth()->id(), // Link if logged in
+                ]
+            );
+        }
 
         // Update existing customer info
         $customer->update([
             'name' => $validated['name'],
+            'phone' => $validated['phone'],
             'address' => $validated['pickup_address'] ?? $customer->address,
             'tier_preference' => $validated['tier_preference'],
+            'user_id' => $customer->user_id ?? auth()->id(), // Ensure link exists
         ]);
 
         // Generate a unique Invoice Code

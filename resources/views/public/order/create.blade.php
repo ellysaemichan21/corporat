@@ -116,19 +116,19 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2">
                             <label for="name" class="block text-xs font-bold uppercase tracking-wider text-zinc-400">{{ __('Full Name / PIC') }}</label>
-                            <input type="text" id="name" name="name" required class="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors placeholder-zinc-600" placeholder="e.g. Eleanor Vance">
+                            <input type="text" id="name" name="name" required class="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors placeholder-zinc-600" placeholder="e.g. Eleanor Vance" value="{{ old('name', $userCustomer?->name ?? auth()->user()?->name ?? '') }}">
                             @error('name') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="space-y-2">
                             <label for="phone" class="block text-xs font-bold uppercase tracking-wider text-zinc-400">{{ __('Phone Number') }}</label>
-                            <input type="tel" id="phone" name="phone" required class="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors placeholder-zinc-600" placeholder="+62 812-xxxx-xxxx">
+                            <input type="tel" id="phone" name="phone" required class="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors placeholder-zinc-600" placeholder="+62 812-xxxx-xxxx" value="{{ old('phone', $userCustomer?->phone ?? '') }}">
                             @error('phone') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="space-y-2 md:col-span-2">
                             <label for="email" class="block text-xs font-bold uppercase tracking-wider text-zinc-400">{{ __('Email Address') }} <span class="text-zinc-600 font-normal normal-case tracking-normal">({{ __('For receipts') }})</span></label>
-                            <input type="email" id="email" name="email" class="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors placeholder-zinc-600" placeholder="eleanor@example.com">
+                            <input type="email" id="email" name="email" class="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors placeholder-zinc-600" placeholder="eleanor@example.com" value="{{ old('email', auth()->user()?->email ?? '') }}">
                             @error('email') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
                         </div>
                     </div>
@@ -176,7 +176,7 @@
                         <div id="collection-fields" class="space-y-6">
                             <div class="space-y-2">
                                 <label for="pickup_address" class="block text-xs font-bold uppercase tracking-wider text-zinc-400">{{ __('Pickup Address') }}</label>
-                                <textarea id="pickup_address" name="pickup_address" rows="3" class="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors placeholder-zinc-600 resize-none" placeholder="e.g. Unit 402, The Grand Residences...">{{ old('pickup_address') }}</textarea>
+                                <textarea id="pickup_address" name="pickup_address" rows="3" class="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors placeholder-zinc-600 resize-none" placeholder="e.g. Unit 402, The Grand Residences...">{{ old('pickup_address', $userCustomer?->address ?? '') }}</textarea>
                                 @error('pickup_address') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
                             </div>
                         </div>
