@@ -12,7 +12,7 @@
             <div class="absolute top-0 inset-x-0 h-1 luxury-bg"></div>
             
             <div class="text-center mb-10">
-                <h1 class="text-3xl font-serif font-bold text-white mb-2 tracking-tight">{{ __('Request Access') }}</h1>
+                <h1 class="text-3xl font-serif font-bold text-white mb-2 tracking-tight">{{ __('Join Felix') }}</h1>
                 <p class="text-zinc-500 text-sm tracking-wide uppercase">{{ __('Establish Your Account') }}</p>
             </div>
 
@@ -22,15 +22,15 @@
                 <!-- Name -->
                 <div class="space-y-2">
                     <label for="name" class="block text-xs font-bold uppercase tracking-wider text-zinc-400">{{ __('Full Name') }}</label>
-                    <input id="name" type="text" name="name" :value="old('name')" required autofocus autocomplete="name"
+                    <input id="name" type="text" name="name" value="{{ old('name') }}" required autofocus autocomplete="name"
                         class="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors placeholder-zinc-600">
                     <x-input-error :messages="$errors->get('name')" class="mt-1 text-red-400 text-xs" />
                 </div>
 
                 <!-- Email Address -->
                 <div class="space-y-2">
-                    <label for="email" class="block text-xs font-bold uppercase tracking-wider text-zinc-400">{{ __('Corporate Email') }}</label>
-                    <input id="email" type="email" name="email" :value="old('email')" required autocomplete="username"
+                    <label for="email" class="block text-xs font-bold uppercase tracking-wider text-zinc-400">{{ __('Email Address') }}</label>
+                    <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username"
                         class="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors placeholder-zinc-600">
                     <x-input-error :messages="$errors->get('email')" class="mt-1 text-red-400 text-xs" />
                 </div>
