@@ -164,7 +164,6 @@
     </div>
 </div>
 
-@endsection
 
 {{-- ─── REVIEW MODAL (Moved outside main content to prevent z-index "sinking") ─── --}}
 <div id="review-modal" class="fixed inset-0 flex items-center justify-center p-4 hidden opacity-0 transition-all duration-500" style="z-index: 99999; background: rgba(0,0,0,0.98); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);">
@@ -327,3 +326,4 @@
     });
 </script>
 @endpush
+@endsection

@@ -165,7 +165,13 @@ class OrderController extends Controller
 
     public function portalTrack($id)
     {
-        $transaction = Transaction::where('user_id', auth()->id())->findOrFail($id);
+        $user = auth()->user();
+        $transaction = Transaction::findOrFail($id);
+
+        // Security: Ensure user owns the transaction OR belongs to the same corporate partner
+        if ($transaction->user_id !== $user->id && (!$user->isPartner() || $transaction->partner_id !== $user->partner_id)) {
+            abort(403, 'Unauthorized access to this artisanal journey.');
+        }
         
         $collectionStatuses = [
             'Pending Pickup', 
@@ -191,7 +197,13 @@ class OrderController extends Controller
 
     public function advanceStatus($id)
     {
+        $user = auth()->user();
         $transaction = Transaction::findOrFail($id);
+        
+        // Security: Same ownership check
+        if ($transaction->user_id !== $user->id && (!$user->isPartner() || $transaction->partner_id !== $user->partner_id)) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
         
         $collectionStatuses = [
             'Pending Pickup', 
@@ -228,6 +240,7 @@ class OrderController extends Controller
 
     public function storeReview(Request $request)
     {
+        $user = auth()->user();
         $validated = $request->validate([
             'transaction_id' => ['required', 'exists:transactions,id'],
             'rating' => ['required', 'integer', 'min:1', 'max:5'],
@@ -235,6 +248,11 @@ class OrderController extends Controller
         ]);
 
         $transaction = Transaction::findOrFail($validated['transaction_id']);
+
+        // Security: Same ownership check
+        if ($transaction->user_id !== $user->id && (!$user->isPartner() || $transaction->partner_id !== $user->partner_id)) {
+            abort(403, 'Unauthorized feedback attempt.');
+        }
 
         \App\Models\Review::create([
             'transaction_id' => $transaction->id,
