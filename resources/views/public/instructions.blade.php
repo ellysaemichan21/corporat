@@ -1,12 +1,12 @@
 @extends('layouts.storefront')
 
 @section('content')
-<div class="py-24 bg-zinc-950 min-h-screen relative overflow-hidden">
+<div class="py-24 min-h-screen relative overflow-hidden">
     <!-- Subtle Background Element -->
     <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-amber-900/10 rounded-full blur-[150px] -translate-y-1/2 translate-x-1/3 z-0"></div>
     <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-900/5 rounded-full blur-[120px] translate-y-1/3 -translate-x-1/4 z-0"></div>
 
-    <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-20">
         
         <!-- Majestic Hero Header -->
         <div class="text-center mb-32 scroll-animate">

@@ -10,8 +10,7 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
+use App\Filament\Widgets\HeroBannerWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -28,6 +27,7 @@ class LaundryPanelProvider extends PanelProvider
             ->id('laundry')
             ->path('laundry')
             ->login()
+            ->authGuard('admin')
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -39,10 +39,9 @@ class LaundryPanelProvider extends PanelProvider
             ->pages([
                 Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+            // Manually register only our custom widgets — no auto-discover
             ->widgets([
-                AccountWidget::class,
-                FilamentInfoWidget::class,
+                HeroBannerWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

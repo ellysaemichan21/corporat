@@ -5,8 +5,6 @@ namespace App\Filament\Resources\Users;
 use App\Filament\Resources\Users\Pages\CreateUser;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
-use App\Filament\Resources\Users\Schemas\UserForm;
-use App\Filament\Resources\Users\Tables\UsersTable;
 use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -18,40 +16,34 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
-    protected static ?string $recordTitleAttribute = 'User';
+    protected static ?string $navigationLabel = 'Website Users';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Access Control';
+
+    protected static ?string $recordTitleAttribute = 'name';
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Section::make('Employee Profile')
+                \Filament\Schemas\Components\Section::make('User Account')
                     ->schema([
                         \Filament\Forms\Components\TextInput::make('name')
                             ->required()
                             ->maxLength(255),
-                            
+
                         \Filament\Forms\Components\TextInput::make('email')
                             ->email()
                             ->required()
                             ->maxLength(255),
-                            
+
                         \Filament\Forms\Components\TextInput::make('password')
                             ->password()
                             ->required(fn (string $context): bool => $context === 'create')
-                            ->dehydrated(fn ($state) => filled($state)),
-                            
-                        \Filament\Forms\Components\Select::make('role')
-                            ->options([
-                                'admin' => 'Administrator',
-                                'driver' => 'Logistics Driver',
-                                'sorter' => 'QC Sorter',
-                                'washer' => 'Washer',
-                                'presser' => 'Presser / Ironing',
-                                'packer' => 'Outbound Packer',
-                            ])
-                            ->required(),
+                            ->dehydrated(fn ($state) => filled($state))
+                            ->helperText('Leave blank to keep current password (on edit)'),
                     ])->columns(2),
             ]);
     }
@@ -60,33 +52,36 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                \Filament\Tables\Columns\TextColumn::make('name')->searchable()->weight('bold'),
-                \Filament\Tables\Columns\TextColumn::make('email')->searchable(),
-                \Filament\Tables\Columns\BadgeColumn::make('role')
-                    ->colors([
-                        'danger' => 'admin',
-                        'warning' => 'driver',
-                        'success' => fn ($state) => in_array($state, ['washer', 'presser', 'packer', 'sorter']),
-                    ]),
-                \Filament\Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
+                \Filament\Tables\Columns\TextColumn::make('name')
+                    ->searchable()
+                    ->weight('bold')
+                    ->sortable(),
+
+                \Filament\Tables\Columns\TextColumn::make('email')
+                    ->searchable()
+                    ->sortable(),
+
+                \Filament\Tables\Columns\TextColumn::make('created_at')
+                    ->label('Registered')
+                    ->dateTime()
+                    ->sortable(),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([])
             ->actions([\Filament\Actions\EditAction::make()]);
     }
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListUsers::route('/'),
+            'index'  => ListUsers::route('/'),
             'create' => CreateUser::route('/create'),
-            'edit' => EditUser::route('/{record}/edit'),
+            'edit'   => EditUser::route('/{record}/edit'),
         ];
     }
 }

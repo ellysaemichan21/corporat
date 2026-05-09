@@ -53,6 +53,20 @@ class TransactionResource extends Resource
                             ])
                             ->required(),
 
+                        // Corporate Status
+                        \Filament\Forms\Components\Toggle::make('is_corporate')
+                            ->label('Corporate / B2B Order')
+                            ->inline(false)
+                            ->live(),
+
+                        \Filament\Forms\Components\Select::make('partner_id')
+                            ->relationship('partner', 'name')
+                            ->label('B2B Partner')
+                            ->placeholder('Select if Corporate')
+                            ->searchable()
+                            ->preload()
+                            ->visible(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('is_corporate')),
+
                         // The Luxury Tier Selection
                         \Filament\Forms\Components\Select::make('tier_level')
                             ->options([
@@ -63,14 +77,16 @@ class TransactionResource extends Resource
                             ->default('Essential')
                             ->required(),
 
-                        // The Total Price
+                        // The Total Price (Managed by System)
                         \Filament\Forms\Components\TextInput::make('total_price')
+                            ->label('Total Investment')
+                            ->helperText('This is automatically calculated based on weights and surcharges.')
                             ->numeric()
-                            ->default(0.00)
                             ->prefix('Rp')
-                            ->required(),
+                            ->disabled()
+                            ->dehydrated(false),
 
-                    ])->columns(2), // Makes it a nice 2-column grid
+                    ])->columns(3), // Increased columns to fit new fields nicely
 
                 \Filament\Schemas\Components\Section::make('Live Status & Logistics')
                     ->schema([
@@ -94,10 +110,57 @@ class TransactionResource extends Resource
                                 'Unpaid' => 'Unpaid',
                                 'Paid' => 'Paid',
                             ])
-                            ->default('Unpaid')
+                            ->default('Paid')
                             ->required(),
 
-                    ])->columns(2),
+                        \Filament\Forms\Components\Toggle::make('is_priority')
+                            ->label('Priority Service (ASAP)')
+                            ->inline(false)
+                            ->onIcon('heroicon-m-bolt')
+                            ->offIcon('heroicon-m-clock'),
+
+                        \Filament\Forms\Components\Toggle::make('is_fast_track')
+                            ->label('Fast Track Surcharge (30%)')
+                            ->inline(false)
+                            ->onIcon('heroicon-m-sparkles')
+                            ->offIcon('heroicon-m-no-symbol'),
+
+                    ])->columns(4),
+
+                \Filament\Schemas\Components\Section::make('Chain of Custody (Employee Tracking)')
+                    ->description('Personnel involved in this garment journey (Auto-Assigned).')
+                    ->schema([
+                        \Filament\Forms\Components\Select::make('driver_id')
+                            ->relationship('driver', 'name')
+                            ->label('Logistics Driver')
+                            ->placeholder('Assigned on Dispatch')
+                            ->disabled(),
+
+                        \Filament\Forms\Components\Select::make('sorter_id')
+                            ->relationship('sorter', 'name')
+                            ->label('Intake Sorter')
+                            ->placeholder('Assigned on Intake')
+                            ->disabled(),
+
+                        \Filament\Forms\Components\Select::make('washer_id')
+                            ->relationship('washer', 'name')
+                            ->label('Primary Washer')
+                            ->placeholder('Assigned on Purification')
+                            ->disabled(),
+
+                        \Filament\Forms\Components\Select::make('presser_id')
+                            ->relationship('presser', 'name')
+                            ->label('Artisanal Presser')
+                            ->placeholder('Assigned on Ironing')
+                            ->disabled(),
+
+                        \Filament\Forms\Components\Select::make('packer_id')
+                            ->relationship('packer', 'name')
+                            ->label('Quality Packer')
+                            ->placeholder('Assigned on QC')
+                            ->disabled(),
+
+                    ])->columns(5),
             ]);
     }
 

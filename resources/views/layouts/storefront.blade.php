@@ -62,8 +62,11 @@
 </head>
 <body class="antialiased min-h-screen flex flex-col selection:bg-amber-600 selection:text-white relative">
     
+    <!-- Solid Base Background -->
+    <div class="fixed inset-0 bg-zinc-950 -z-20"></div>
+
     <!-- Ambient Golden Particles -->
-    <canvas id="luxury-particles" class="fixed inset-0 pointer-events-none z-40 opacity-80"></canvas>
+    <canvas id="luxury-particles" class="fixed inset-0 pointer-events-none -z-10 opacity-60"></canvas>
 
     <!-- Sticky Navigation -->
     <nav class="fixed w-full z-50 glass-nav transition-all duration-300">
@@ -78,13 +81,47 @@
                     <div class="ml-10 flex items-center space-x-6">
                         <a href="{{ route('public.landing') }}" class="hover:text-amber-400 text-zinc-300 px-3 py-2 rounded-md text-sm font-medium transition-colors tracking-wide uppercase">{{ __('Home') }}</a>
                         <a href="{{ url('/instructions') }}" class="hover:text-amber-400 text-zinc-300 px-3 py-2 rounded-md text-sm font-medium transition-colors tracking-wide uppercase">{{ __('How It Works') }}</a>
+                        
+                        @auth
+                            {{-- Corporate Partner Badge + Profile Link --}}
+                            @if(auth()->user()->isPartner())
+                                <a href="{{ route('partner.profile') }}" class="flex items-center gap-3 group">
+                                    <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/8 hover:bg-amber-500/15 transition-all">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-amber-400"></div>
+                                        <span class="text-amber-400 text-[11px] font-bold uppercase tracking-[0.15em]">{{ auth()->user()->partner->name }}</span>
+                                    </div>
+                                </a>
+                            @else
+                                <a href="{{ route('dashboard') }}" class="hover:text-amber-400 text-zinc-300 px-3 py-2 rounded-md text-sm font-medium transition-colors tracking-wide uppercase">{{ __('Client Portal') }}</a>
+                            @endif
+                            <form method="POST" action="{{ route('logout') }}" class="inline">
+                                @csrf
+                                <button type="submit" class="hover:text-red-400 text-zinc-500 px-3 py-2 rounded-md text-[10px] font-bold transition-colors tracking-widest uppercase">
+                                    {{ __('Exit') }}
+                                </button>
+                            </form>
+                        @else
+                            <a href="{{ route('login') }}" class="hover:text-amber-400 text-zinc-300 px-3 py-2 rounded-md text-sm font-medium transition-colors tracking-wide uppercase">{{ __('Access Portal') }}</a>
+                        @endauth
+
+
                         <a href="{{ url('/order') }}" class="magnetic-btn inline-block luxury-bg text-zinc-950 px-5 py-2.5 rounded-sm text-sm font-bold tracking-wide uppercase shadow-[0_0_15px_rgba(212,175,55,0.3)]">{{ __('Book Service') }}</a>
                         
-                        <!-- Language Switcher -->
-                        <div class="flex items-center gap-2 border-l border-zinc-800 pl-6 ml-2">
-                            <a href="{{ route('lang.switch', 'en') }}" class="text-xs font-bold {{ App::getLocale() === 'en' ? 'text-amber-500' : 'text-zinc-500 hover:text-zinc-300' }}">EN</a>
-                            <span class="text-zinc-700 text-xs">/</span>
-                            <a href="{{ route('lang.switch', 'id') }}" class="text-xs font-bold {{ App::getLocale() === 'id' ? 'text-amber-500' : 'text-zinc-500 hover:text-zinc-300' }}">ID</a>
+                        <!-- Language & Effect Switcher -->
+                        <div class="flex items-center gap-4 border-l border-zinc-800 pl-6 ml-2">
+                            <!-- Particle Toggle -->
+                            <button id="particle-toggle" class="group relative flex items-center justify-center w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 transition-all" title="{{ __('Toggle Effects') }}">
+                                <svg class="w-4 h-4 text-amber-500 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12,2L14.4,9.35L22,9.6L15.85,14.1L18.45,21.35L12,16.5L5.55,21.35L8.15,14.1L2,9.6L9.6,9.35L12,2Z" />
+                                </svg>
+                                <span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full hidden" id="particle-status-dot"></span>
+                            </button>
+
+                            <div class="flex items-center gap-2">
+                                <a href="{{ route('lang.switch', 'en') }}" class="text-xs font-bold {{ App::getLocale() === 'en' ? 'text-amber-500' : 'text-zinc-500 hover:text-zinc-300' }}">EN</a>
+                                <span class="text-zinc-700 text-xs">/</span>
+                                <a href="{{ route('lang.switch', 'id') }}" class="text-xs font-bold {{ App::getLocale() === 'id' ? 'text-amber-500' : 'text-zinc-500 hover:text-zinc-300' }}">ID</a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -98,7 +135,7 @@
     </main>
 
     <!-- Corporate Footer -->
-    <footer class="border-t border-zinc-800 bg-zinc-950 pt-16 pb-8 mt-24">
+    <footer class="border-t border-zinc-800 pt-16 pb-8 mt-24 relative z-20">
         <div class="max-w-7xl mx-auto px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
                 <div class="col-span-1 md:col-span-2">
@@ -140,6 +177,32 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // 0. Particle Toggle Logic
+            const particleToggle = document.getElementById('particle-toggle');
+            const particleStatusDot = document.getElementById('particle-status-dot');
+            const canvas = document.getElementById('luxury-particles');
+            let particlesEnabled = localStorage.getItem('particles-enabled') !== 'false';
+            
+            const updateParticleState = () => {
+                if (particlesEnabled) {
+                    canvas.style.display = 'block';
+                    particleStatusDot.classList.add('hidden');
+                    particleToggle.querySelector('svg').classList.remove('opacity-30');
+                } else {
+                    canvas.style.display = 'none';
+                    particleStatusDot.classList.remove('hidden');
+                    particleToggle.querySelector('svg').classList.add('opacity-30');
+                }
+            };
+
+            updateParticleState();
+
+            particleToggle.addEventListener('click', () => {
+                particlesEnabled = !particlesEnabled;
+                localStorage.setItem('particles-enabled', particlesEnabled);
+                updateParticleState();
+            });
+
             // 1. Scroll Animations (Fade In Up)
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -155,7 +218,6 @@
             });
 
             // 2. Ambient Golden Particles
-            const canvas = document.getElementById('luxury-particles');
             if (canvas) {
                 const ctx = canvas.getContext('2d');
                 let particlesArray;
@@ -197,10 +259,12 @@
                 initParticles();
                 
                 function animateParticles() {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    for (let i = 0; i < particlesArray.length; i++) {
-                        particlesArray[i].update();
-                        particlesArray[i].draw();
+                    if (particlesEnabled) {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        for (let i = 0; i < particlesArray.length; i++) {
+                            particlesArray[i].update();
+                            particlesArray[i].draw();
+                        }
                     }
                     requestAnimationFrame(animateParticles);
                 }
@@ -258,5 +322,6 @@
             }
         });
     </script>
+    @stack('scripts')
 </body>
 </html>

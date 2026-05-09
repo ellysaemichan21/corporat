@@ -2,7 +2,7 @@
 
 @section('content')
 <!-- Hero Section -->
-<div id="parallax-hero" class="relative overflow-hidden bg-zinc-950 pt-40 pb-20 lg:pt-64 lg:pb-32">
+<div id="parallax-hero" class="relative overflow-hidden pt-40 pb-20 lg:pt-64 lg:pb-32">
     <div class="absolute inset-0 z-0">
         <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-zinc-950/10 z-10"></div>
         <img id="parallax-bg" src="{{ asset('test/images/1.png') }}" alt="Facade" class="w-full h-full object-cover object-top opacity-60 mix-blend-overlay scale-105 transition-transform duration-700 ease-out">
@@ -30,8 +30,8 @@
 </div>
 
 <!-- Section 2: Inside the Artisan Workshop -->
-<div class="py-24 bg-zinc-950 border-t border-zinc-900 overflow-hidden relative">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8 scroll-animate">
+<div class="py-24 border-t border-zinc-900 overflow-hidden relative">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 scroll-animate relative z-20">
         <div class="flex flex-col md:flex-row items-center gap-16">
             <div class="w-full md:w-1/2 relative group flex justify-center">
                 <div class="absolute inset-0 bg-amber-500/20 blur-[80px] z-0 opacity-50 group-hover:opacity-80 transition-opacity duration-700"></div>
@@ -55,8 +55,8 @@
 </div>
 
 <!-- Section 3: VIP Concierge Logistics -->
-<div class="py-24 bg-zinc-900 border-t border-zinc-800 overflow-hidden relative">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8 scroll-animate">
+<div class="py-24 border-t border-zinc-800 overflow-hidden relative">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 scroll-animate relative z-20">
         <div class="flex flex-col md:flex-row-reverse items-center gap-16">
             <div class="w-full md:w-1/2 relative group flex justify-center">
                 <div class="absolute inset-0 bg-blue-500/10 blur-[80px] z-0 opacity-50 group-hover:opacity-80 transition-opacity duration-700"></div>
@@ -77,8 +77,8 @@
 </div>
 
 <!-- Section 4: The Executive Guarantee -->
-<div class="py-24 bg-zinc-950 border-t border-zinc-900 overflow-hidden relative">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8 text-center scroll-animate">
+<div class="py-24 border-t border-zinc-900 overflow-hidden relative">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 text-center scroll-animate relative z-20">
         <h2 class="text-4xl md:text-5xl font-serif font-bold text-white mb-6">{{ __('Unwavering Accountability') }}</h2>
         <div class="w-16 h-1 luxury-bg mx-auto mb-10"></div>
         <p class="text-zinc-400 text-xl leading-relaxed max-w-4xl mx-auto mb-16">
