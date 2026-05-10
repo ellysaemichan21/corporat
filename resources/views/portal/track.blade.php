@@ -28,6 +28,34 @@
         </div>
 
         <div class="card-glass rounded-xl p-8 md:p-12 border-zinc-800 shadow-2xl scroll-animate delay-100">
+            @php
+                $statusImages = [
+                    'Pending Pickup'         => 'tracking/picking.jpeg',
+                    'Sorting & Inspection'   => 'tracking/sorter.jpeg',
+                    'Artisanal Wash'         => 'tracking/washer.jpeg',
+                    'Professional Pressing'  => 'tracking/presser.jpeg',
+                    'Final Packaging'        => 'tracking/packer.jpeg',
+                    'Outbound Delivery'      => 'tracking/deliver.jpeg',
+                    'Pending Drop-off'       => 'tracking/picking.jpeg',
+                    'Received & Sorted'      => 'tracking/sorter.jpeg',
+                    'Deep Cleaning'          => 'tracking/washer.jpeg',
+                    'Artisanal Pressing'     => 'tracking/presser.jpeg',
+                    'Completed'              => 'tracking/deliver.jpeg',
+                ];
+                $currentImagePath = $statusImages[$transaction->laundry_status] ?? 'tracking/picking.jpeg';
+            @endphp
+
+            <!-- Centered "Ball Size" Circular Visual -->
+            <div class="flex justify-center mb-8">
+                <div class="relative w-20 h-20 rounded-full overflow-hidden border-2 border-zinc-800 shadow-[0_0_30px_rgba(0,0,0,0.5)] group">
+                    <img id="status-visual" 
+                         src="{{ Storage::url($currentImagePath) }}" 
+                         alt="Service Visual" 
+                         class="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/40 via-transparent to-transparent"></div>
+                </div>
+            </div>
+
             <!-- Timeline Tracker -->
             <div class="relative">
                 @php
@@ -53,7 +81,7 @@
                                     @endif">
                                     
                                     <div id="step-content-{{ $index }}">
-                                        @if($index < $currentIndex || ($index === $currentIndex && $status === 'Completed'))
+                                        @if($index < $currentIndex || ($index === $currentIndex && ($status === 'Outbound Delivery' || $status === 'Completed')))
                                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
                                             </svg>
@@ -164,6 +192,7 @@
     </div>
 </div>
 
+@endsection
 
 {{-- ─── REVIEW MODAL (Moved outside main content to prevent z-index "sinking") ─── --}}
 <div id="review-modal" class="fixed inset-0 flex items-center justify-center p-4 hidden opacity-0 transition-all duration-500" style="z-index: 99999; background: rgba(0,0,0,0.98); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);">
@@ -250,7 +279,7 @@
         let currentIndex = {{ $currentIndex }};
         
         // If already completed, show modal immediately
-        if (statuses[currentIndex] === 'Completed') {
+        if (statuses[currentIndex] === 'Outbound Delivery' || statuses[currentIndex] === 'Completed') {
             setTimeout(showReviewModal, 1000);
             return;
         }
@@ -280,6 +309,19 @@
                         currentIndex = nextIndex;
                         
                         document.getElementById('current-status-display').innerText = newStatus;
+
+                        // Update Status Circle
+                        const statusImages = @json($statusImages);
+                        const visualImg = document.getElementById('status-visual');
+                        if (visualImg && statusImages[newStatus]) {
+                            visualImg.style.opacity = '0';
+                            visualImg.style.transform = 'scale(0.9)';
+                            setTimeout(() => {
+                                visualImg.src = `/storage/${statusImages[newStatus]}`;
+                                visualImg.style.opacity = '1';
+                                visualImg.style.transform = 'scale(1)';
+                            }, 500);
+                        }
 
                         if (data.is_completed) {
                             clearInterval(simulationInterval);
@@ -313,8 +355,8 @@
 
             newCircle.className = "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-700 border-2 bg-amber-500 border-amber-500 text-zinc-950 shadow-[0_0_20px_rgba(212,175,55,0.4)]";
             
-            // If the NEW step is "Completed", show the checkmark immediately
-            if (statuses[newIdx] === 'Completed') {
+            // If the NEW step is the final one, show the checkmark immediately
+            if (statuses[newIdx] === 'Outbound Delivery' || statuses[newIdx] === 'Completed') {
                 newContent.innerHTML = `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>`;
             }
 
@@ -326,4 +368,3 @@
     });
 </script>
 @endpush
-@endsection

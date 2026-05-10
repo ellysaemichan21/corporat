@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ $title ?? config('app.name', 'Laundry') }} — {{ config('app.name', 'Laundry') }}</title>
+        <link rel="icon" type="image/png" href="{{ asset('test/images/logo.png') }}">
         <meta name="description" content="Place a laundry order or track your existing order easily online.">
 
         <link rel="preconnect" href="https://fonts.bunny.net">

@@ -62,7 +62,7 @@
                                         <span class="text-[9px] text-zinc-600 uppercase tracking-widest mb-1">{{ __('Total Est.') }}</span>
                                         <span class="text-sm font-mono text-zinc-300">Rp {{ number_format($tx->total_price, 0, ',', '.') }}</span>
                                     </div>
-                                    <a href="{{ route('public.track', $tx->invoice_code) }}" class="flex items-center gap-2 text-[10px] font-bold text-amber-500 uppercase tracking-widest group-hover:gap-3 transition-all">
+                                    <a href="{{ route('portal.track', $tx->id) }}" class="flex items-center gap-2 text-[10px] font-bold text-amber-500 uppercase tracking-widest group-hover:gap-3 transition-all">
                                         {{ __('Track Status') }}
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -103,7 +103,7 @@
                                     <td class="px-6 py-4 text-sm font-medium text-white">{{ $tx->customer_name }}</td>
                                     <td class="px-6 py-4 text-xs font-mono text-zinc-400">Rp {{ number_format($tx->total_price, 0, ',', '.') }}</td>
                                     <td class="px-6 py-4 text-right">
-                                        <a href="{{ route('public.track', $tx->invoice_code) }}" class="text-[9px] font-bold text-zinc-500 hover:text-amber-500 uppercase tracking-widest transition-colors">
+                                        <a href="{{ route('portal.track', $tx->id) }}" class="text-[9px] font-bold text-zinc-500 hover:text-amber-500 uppercase tracking-widest transition-colors">
                                             {{ __('Details') }}
                                         </a>
                                     </td>

@@ -33,8 +33,9 @@ class EmployeeResource extends Resource
                             ->image()
                             ->directory('employees')
                             ->disk('public')
-                            ->imageEditor()
-                            ->circleCropper()
+                            ->visibility('public')
+                            // ->imageEditor()
+                            // ->circleCropper()
                             ->nullable()
                             ->columnSpanFull(),
 
@@ -51,6 +52,7 @@ class EmployeeResource extends Resource
                         \Filament\Forms\Components\Select::make('role')
                             ->label('Job Role')
                             ->options([
+                                'manager' => 'Manager',
                                 'admin'   => 'Administrator',
                                 'washer'  => 'Washer',
                                 'presser' => 'Presser / Ironing',
@@ -99,6 +101,7 @@ class EmployeeResource extends Resource
                 \Filament\Tables\Columns\BadgeColumn::make('role')
                     ->colors([
                         'danger'  => 'admin',
+                        'info'    => 'manager',
                         'warning' => 'driver',
                         'primary' => 'sorter',
                         'success' => fn ($state) => in_array($state, ['washer', 'presser', 'packer']),

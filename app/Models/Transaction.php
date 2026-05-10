@@ -15,11 +15,12 @@ class Transaction extends Model
     protected static function booted()
     {
         static::creating(function (Transaction $transaction) {
-            $transaction->driver_id  ??= Employee::where('role', 'driver')->inRandomOrder()->first()?->id;
-            $transaction->sorter_id  ??= Employee::where('role', 'sorter')->inRandomOrder()->first()?->id;
-            $transaction->washer_id  ??= Employee::where('role', 'washer')->inRandomOrder()->first()?->id;
-            $transaction->presser_id ??= Employee::where('role', 'presser')->inRandomOrder()->first()?->id;
-            $transaction->packer_id  ??= Employee::where('role', 'packer')->inRandomOrder()->first()?->id;
+            $transaction->driver_id          ??= Employee::where('role', 'driver')->inRandomOrder()->first()?->id;
+            $transaction->delivery_driver_id ??= Employee::where('role', 'driver')->inRandomOrder()->first()?->id;
+            $transaction->sorter_id          ??= Employee::where('role', 'sorter')->inRandomOrder()->first()?->id;
+            $transaction->washer_id          ??= Employee::where('role', 'washer')->inRandomOrder()->first()?->id;
+            $transaction->presser_id         ??= Employee::where('role', 'presser')->inRandomOrder()->first()?->id;
+            $transaction->packer_id          ??= Employee::where('role', 'packer')->inRandomOrder()->first()?->id;
         });
     }
 
@@ -39,6 +40,7 @@ class Transaction extends Model
     public function presser() { return $this->belongsTo(Employee::class, 'presser_id'); }
     public function packer() { return $this->belongsTo(Employee::class, 'packer_id'); }
     public function driver() { return $this->belongsTo(Employee::class, 'driver_id'); }
+    public function delivery_driver() { return $this->belongsTo(Employee::class, 'delivery_driver_id'); }
 
     public function getTotalWeightAttribute()
     {

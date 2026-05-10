@@ -132,8 +132,14 @@ class TransactionResource extends Resource
                     ->schema([
                         \Filament\Forms\Components\Select::make('driver_id')
                             ->relationship('driver', 'name')
-                            ->label('Logistics Driver')
+                            ->label('Outbound Collector')
                             ->placeholder('Assigned on Dispatch')
+                            ->disabled(),
+
+                        \Filament\Forms\Components\Select::make('delivery_driver_id')
+                            ->relationship('delivery_driver', 'name')
+                            ->label('Inbound Courier')
+                            ->placeholder('Assigned on Delivery')
                             ->disabled(),
 
                         \Filament\Forms\Components\Select::make('sorter_id')
@@ -160,7 +166,7 @@ class TransactionResource extends Resource
                             ->placeholder('Assigned on QC')
                             ->disabled(),
 
-                    ])->columns(5),
+                    ])->columns(6),
             ]);
     }
 

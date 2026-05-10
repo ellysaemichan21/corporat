@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Felix Elite Garment Care | B2B Luxury Laundry</title>
+    <link rel="icon" type="image/png" href="{{ asset('test/images/logo.png') }}">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700|playfair-display:400,600,700" rel="stylesheet" />
     
