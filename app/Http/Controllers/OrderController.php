@@ -47,7 +47,7 @@ class OrderController extends Controller
             'phone'             => ['required', 'string', 'max:50'],
             'delivery_method'   => ['required', 'in:collection,dropoff'],
             'pickup_address'    => ['required_if:delivery_method,collection', 'nullable', 'string', 'max:2000'],
-            'expected_datetime' => ['required_without:is_priority', 'nullable', 'date'],
+            'expected_datetime' => ['nullable', 'date'],
             'is_priority'       => ['nullable', 'boolean'],
             'is_fast_track'     => ['nullable', 'boolean'],
             'tier_preference'   => ['required', 'in:Essential,Signature,Bespoke'],
@@ -166,13 +166,17 @@ class OrderController extends Controller
                     $transaction->details()->create(['service_id' => $services->get(0)->id, 'weight' => 2.5, 'unit_price' => $services->get(0)->price]);
                     $transaction->details()->create(['service_id' => $services->get(1)->id, 'weight' => 1.0, 'unit_price' => $services->get(1)->price]);
                 } elseif ($validated['tier_preference'] === 'Signature') {
-                    $personalKg = $bulkKg > 0 ? $bulkKg : 7;
-                    $transaction->details()->create(['service_id' => $services->get(0)->id, 'weight' => round($personalKg * 0.7, 1), 'unit_price' => $services->get(0)->price]);
-                    $transaction->details()->create(['service_id' => $services->get(1)->id, 'weight' => round($personalKg * 0.3, 1), 'unit_price' => $services->get(1)->price]);
+                    $personalQty = $bulkKg > 0 ? (int) round($bulkKg) : 7;
+                    $qty1 = (int) max(1, round($personalQty * 0.6));
+                    $qty2 = (int) max(1, $personalQty - $qty1);
+                    $transaction->details()->create(['service_id' => $services->get(0)->id, 'weight' => $qty1, 'unit_price' => $services->get(0)->price]);
+                    $transaction->details()->create(['service_id' => $services->get(1)->id, 'weight' => $qty2, 'unit_price' => $services->get(1)->price]);
                 } elseif ($validated['tier_preference'] === 'Bespoke') {
-                    $personalKg = $bulkKg > 0 ? $bulkKg : 15;
-                    $transaction->details()->create(['service_id' => $services->get(0)->id, 'weight' => round($personalKg * 0.6, 1), 'unit_price' => $services->get(0)->price]);
-                    $transaction->details()->create(['service_id' => $services->get(2) ? $services->get(2)->id : $services->get(0)->id, 'weight' => round($personalKg * 0.4, 1), 'unit_price' => ($services->get(2) ?? $services->get(0))->price]);
+                    $personalQty = $bulkKg > 0 ? (int) round($bulkKg) : 15;
+                    $qty1 = (int) max(1, round($personalQty * 0.6));
+                    $qty2 = (int) max(1, $personalQty - $qty1);
+                    $transaction->details()->create(['service_id' => $services->get(0)->id, 'weight' => $qty1, 'unit_price' => $services->get(0)->price]);
+                    $transaction->details()->create(['service_id' => $services->get(2) ? $services->get(2)->id : $services->get(0)->id, 'weight' => $qty2, 'unit_price' => ($services->get(2) ?? $services->get(0))->price]);
                 }
             }
         }

@@ -169,7 +169,7 @@
                                 </div>
                             </div>
                             <div id="datetime-wrapper" onclick="alert('Maaf Pak Untuk Uji Coba Silahkan Pakai ASAP');" class="cursor-pointer">
-                                <input type="text" id="expected_datetime" name="expected_datetime" required readonly class="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-zinc-500 focus:outline-none transition-colors cursor-not-allowed pointer-events-none" placeholder="Silahkan centang ASAP / Priority" value="{{ old('expected_datetime') }}">
+                                <input type="text" id="expected_datetime" name="expected_datetime" readonly class="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-zinc-500 focus:outline-none transition-colors cursor-not-allowed pointer-events-none" placeholder="Silahkan centang ASAP / Priority" value="{{ old('expected_datetime') }}">
                             </div>
                             @error('expected_datetime') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
                         </div>
@@ -391,10 +391,30 @@
         // 1. Reset all first
         document.querySelectorAll('input[id^="qty-input-"]').forEach(i => i.value = 0);
 
-        // 2. Handle Piece-based items (Signature/Bespoke) - Always 1 per selection
-        pcsServices.forEach(cb => {
-            document.getElementById('qty-input-' + cb.dataset.serviceId).value = 1;
-        });
+        // 2. Handle Piece-based items - Each gets a sensible whole number qty
+        if (pcsServices.length > 0 && currentSelectedKg > 0) {
+            // Distribute the bundle as whole-number pieces across pcs services
+            const totalPieces = Math.max(1, Math.round(currentSelectedKg));
+            if (pcsServices.length === 1) {
+                document.getElementById('qty-input-' + pcsServices[0].dataset.serviceId).value = totalPieces;
+            } else {
+                let remaining = totalPieces;
+                pcsServices.forEach((cb, index) => {
+                    const qtyInput = document.getElementById('qty-input-' + cb.dataset.serviceId);
+                    if (index === pcsServices.length - 1) {
+                        qtyInput.value = Math.max(1, remaining);
+                    } else {
+                        const share = Math.max(1, Math.round(remaining / (pcsServices.length - index)));
+                        qtyInput.value = share;
+                        remaining -= share;
+                    }
+                });
+            }
+        } else {
+            pcsServices.forEach(cb => {
+                document.getElementById('qty-input-' + cb.dataset.serviceId).value = 1;
+            });
+        }
 
         // 3. Handle Kg-based items (Essential/Bulk) - Share the bundle weight
         if (kgServices.length > 0 && currentSelectedKg > 0) {
@@ -443,6 +463,7 @@
         const collectionFields = document.getElementById('collection-fields');
         const datetimeSection = document.getElementById('datetime-section');
         const dateLabel = document.getElementById('date-label');
+        const datetimeInput = document.getElementById('expected_datetime');
 
         if (method === 'collection') {
             collectionFields.style.display = 'block';
@@ -451,6 +472,8 @@
         } else {
             collectionFields.style.display = 'none';
             if (datetimeSection) datetimeSection.style.display = 'none';
+            // Clear datetime value so backend doesn't reject it
+            if (datetimeInput) datetimeInput.value = '';
             dateLabel.innerText = "{{ __('Expected Drop-off Date') }}";
         }
     }
@@ -548,6 +571,23 @@
 
         const checkedDelivery = document.querySelector('input[name="delivery_method"]:checked');
         if (checkedDelivery) toggleDelivery(checkedDelivery.value);
+
+        // If partner/corporate, disable Essential tier, show corporate bundles, hide promo, auto "do the best"
+        @if($isPartnerUser)
+            const essentialOption = document.getElementById('tier-essential');
+            if (essentialOption) essentialOption.disabled = true;
+            document.getElementById('personal-bundles').classList.add('hidden');
+            document.getElementById('corporate-bundles').classList.remove('hidden');
+            
+            // Hide promo section — partners already have partner discount
+            const promoSection = document.getElementById('promo-section');
+            if (promoSection) promoSection.classList.add('hidden');
+
+            // Auto-activate "Do the best" — bulk orders let the system decide
+            doTheBest();
+            // Hide the toggle buttons too — partners can't switch back
+            document.getElementById('btn-choose-myself').classList.add('hidden');
+        @endif
     });
 </script>
 @endpush

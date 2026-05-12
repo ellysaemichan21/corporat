@@ -77,7 +77,7 @@ class DetailsRelationManager extends RelationManager
                     ->searchable(),
                 TextColumn::make('weight')
                     ->label('Weight/Qty')
-                    ->suffix(' Kg'),
+                    ->formatStateUsing(fn ($state, $record) => $state . ' ' . (($record->service->unit_type ?? 'kg') === 'kg' ? 'Kg' : 'Pcs')),
                 TextColumn::make('unit_price')
                     ->money('IDR'),
                 TextColumn::make('subtotal')

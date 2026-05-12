@@ -43,7 +43,7 @@
                     <div class="service-row">
                         <div>
                             <div class="service-name">{{ $detail->service->name ?? 'Service' }}</div>
-                            <div class="service-price">Qty {{ (float) $detail->qty }}</div>
+                            <div class="service-price">{{ ($detail->service->unit_type ?? 'kg') === 'kg' ? number_format((float) $detail->weight, 1) . ' Kg' : number_format((float) $detail->weight, 0) . ' Pcs' }}</div>
                         </div>
                         <div style="font-size:.875rem;font-weight:700;color:#111827;">
                             Rp {{ number_format((float) $detail->subtotal, 0, ',', '.') }}
