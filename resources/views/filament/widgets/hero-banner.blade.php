@@ -37,11 +37,10 @@
             </div>
 
             {{-- Stats row --}}
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
                 @foreach([
                     ['label'=>'Total Orders', 'val'=>$d['orders'],                                  'color'=>'#e4e4e7'],
                     ['label'=>'In Progress',  'val'=>$d['active'],                                  'color'=>'#f59e0b'],
-                    ['label'=>'Revenue',      'val'=>'Rp '.number_format($d['revenue']/1000000,1).'M', 'color'=>'#4ade80'],
                     ['label'=>'B2B Partners', 'val'=>$d['partners'],                                'color'=>'#60a5fa'],
                 ] as $s)
                 <div style="background:rgba(0,0,0,0.65);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px 16px;min-width:0;overflow:hidden;">
@@ -82,7 +81,8 @@
                 View All →
             </a>
         </div>
-        <table style="width:100%;border-collapse:collapse;">
+        <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;white-space:nowrap;">
             <thead>
                 <tr style="background:#09090b;">
                     <th style="color:#3f3f46;font-size:10px;text-transform:uppercase;letter-spacing:0.18em;padding:12px 24px;text-align:left;font-weight:600;">Invoice</th>
@@ -124,7 +124,8 @@
                 <tr><td colspan="5" style="padding:32px;text-align:center;color:#3f3f46;font-style:italic;">No transactions yet.</td></tr>
                 @endforelse
             </tbody>
-        </table>
+            </table>
+        </div>
     </div>
 
 </div>

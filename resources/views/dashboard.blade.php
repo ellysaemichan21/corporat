@@ -77,7 +77,7 @@
         </div>
 
         {{-- ─── ARCHIVE ─────────────────────────────────────────────────── --}}
-        @if(auth()->user()->email === 'laundry@gmail.com')
+        <div>
             <div class="scroll-animate delay-200">
                 <h3 class="text-xs font-bold uppercase tracking-[0.3em] text-zinc-600 mb-6 flex items-center gap-4">
                     {{ __('Artisanal Archive') }}
@@ -119,7 +119,7 @@
                     </table>
                 </div>
             </div>
-        @endif
+        </div>
     </div>
 </div>
 @endsection

@@ -25,11 +25,18 @@ class OrderController extends Controller
             $userCustomer = auth()->user()->customer;
         }
 
+        $activePromos = \App\Models\Promo::where('is_active', true)
+            ->where(function($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->get(['code', 'description', 'value', 'type']);
+
         return view('public.order.create', [
             'services'     => $services,
             'tiers'        => $services->groupBy(fn (\App\Models\Service $s) => $s->tier?->name ?? 'Other'),
             'partners'     => $partners,
             'userCustomer' => $userCustomer,
+            'activePromos' => $activePromos,
         ]);
     }
 
@@ -45,6 +52,12 @@ class OrderController extends Controller
             'is_fast_track'     => ['nullable', 'boolean'],
             'tier_preference'   => ['required', 'in:Essential,Signature,Bespoke'],
             'weight_bundle'     => ['nullable', 'numeric', 'min:1', 'max:1000'],
+            'partner_id'        => ['nullable', 'exists:partners,id'],
+            'is_corporate'      => ['nullable', 'boolean'],
+            'items'             => ['nullable', 'array'],
+            'items.*.service_id'=> ['required_with:items', 'exists:services,id'],
+            'items.*.qty'       => ['required_with:items', 'numeric', 'min:0'],
+            'promo_code'        => ['nullable', 'string', 'max:50'],
         ]);
 
         // Email is present in the form for UX, but as per schema we omit it here.
@@ -83,7 +96,7 @@ class OrderController extends Controller
 
         $isPartner = auth()->check() && auth()->user()->isPartner();
         $isCorporate = $isPartner || $request->boolean('is_corporate');
-        $partnerId = $isPartner ? auth()->user()->partner_id : null;
+        $partnerId = $isPartner ? auth()->user()->partner_id : ($validated['partner_id'] ?? null);
 
         $transaction = Transaction::create([
             'customer_id' => $customer->id,
@@ -94,7 +107,7 @@ class OrderController extends Controller
             'invoice_code' => $invoiceCode,
             'order_channel' => 'Online',
             'tier_level' => $validated['tier_preference'],
-            'laundry_status' => ($validated['delivery_method'] === 'collection') ? 'Pending Pickup' : 'Pending Drop-off',
+            'laundry_status' => ($validated['delivery_method'] === 'collection') ? 'Pending Pickup' : 'Received & Sorted',
             'payment_status' => 'Paid',
             'total_price' => 0,
             'delivery_method' => $validated['delivery_method'],
@@ -104,54 +117,67 @@ class OrderController extends Controller
             'is_fast_track' => $request->has('is_fast_track'),
         ]);
 
-        // BUNDLE LOGIC:
-        // For corporate orders, use the submitted bulk weight (50/150/300 kg).
-        // For personal orders, use realistic garment bundle weights.
-        $tier = ServiceTier::where('name', $validated['tier_preference'])->with('services')->first();
-        $isCorporate = $request->boolean('is_corporate');
-        $bulkKg = (float) ($validated['weight_bundle'] ?? 0);
-
-        if ($tier && $tier->services->count() > 0) {
-            $services = $tier->services;
-
-            if ($isCorporate && $bulkKg > 0) {
-                // Corporate: distribute the bulk kg across available services in the tier
-                // Primary service gets 85%, secondary gets 15% (e.g. main wash + finishing)
-                $primary   = $services->get(0);
-                $secondary = $services->get(1);
-
-                if ($primary) {
-                    $transaction->details()->create([
-                        'service_id' => $primary->id,
-                        'weight'     => round($bulkKg * 0.85, 1),
-                        'unit_price' => $primary->price,
-                    ]);
-                }
-                if ($secondary) {
-                    $transaction->details()->create([
-                        'service_id' => $secondary->id,
-                        'weight'     => round($bulkKg * 0.15, 1),
-                        'unit_price' => $secondary->price,
-                    ]);
-                }
-            } elseif ($validated['tier_preference'] === 'Essential') {
-                // Bundle: 2.5 Kg Wash & Fold + 1 Bed Linen
-                $transaction->details()->create(['service_id' => $services->get(0)->id, 'weight' => 2.5, 'unit_price' => $services->get(0)->price]);
-                $transaction->details()->create(['service_id' => $services->get(1)->id, 'weight' => 1.0, 'unit_price' => $services->get(1)->price]);
-            } elseif ($validated['tier_preference'] === 'Signature') {
-                // Personal bundle: use selected kg or default to 7kg
-                $personalKg = $bulkKg > 0 ? $bulkKg : 7;
-                $transaction->details()->create(['service_id' => $services->get(0)->id, 'weight' => round($personalKg * 0.7, 1), 'unit_price' => $services->get(0)->price]);
-                $transaction->details()->create(['service_id' => $services->get(1)->id, 'weight' => round($personalKg * 0.3, 1), 'unit_price' => $services->get(1)->price]);
-            } elseif ($validated['tier_preference'] === 'Bespoke') {
-                // Personal bundle: use selected kg or default to 15kg
-                $personalKg = $bulkKg > 0 ? $bulkKg : 15;
-                $transaction->details()->create(['service_id' => $services->get(0)->id, 'weight' => round($personalKg * 0.6, 1), 'unit_price' => $services->get(0)->price]);
-                $transaction->details()->create(['service_id' => $services->get(2) ? $services->get(2)->id : $services->get(0)->id, 'weight' => round($personalKg * 0.4, 1), 'unit_price' => ($services->get(2) ?? $services->get(0))->price]);
+        // Apply promo code if provided (personal orders only)
+        $promoCode = $validated['promo_code'] ?? null;
+        if ($promoCode && !$isCorporate) {
+            $promo = \App\Models\Promo::where('code', strtoupper($promoCode))
+                ->where('is_active', true)
+                ->first();
+            if ($promo) {
+                $transaction->promo_id = $promo->id;
+                $transaction->saveQuietly();
             }
-
-            $transaction->syncTotal();
         }
+
+        // MANIFEST LOGIC:
+        // Prioritize manual items if provided, otherwise fallback to curated bundle logic.
+        $items = collect($request->input('items', []))->filter(fn($i) => ($i['qty'] ?? 0) > 0);
+
+        if ($items->isNotEmpty()) {
+            foreach ($items as $item) {
+                $service = \App\Models\Service::find($item['service_id']);
+                if ($service) {
+                    $transaction->details()->create([
+                        'service_id' => $service->id,
+                        'weight'     => (float)$item['qty'],
+                        'unit_price' => $service->price,
+                    ]);
+                }
+            }
+        } else {
+            // BUNDLE LOGIC (Fallback):
+            $tier = ServiceTier::where('name', $validated['tier_preference'])->with('services')->first();
+            $bulkKg = (float) ($validated['weight_bundle'] ?? 0);
+
+            if ($tier && $tier->services->count() > 0) {
+                $services = $tier->services;
+
+                if ($isCorporate && $bulkKg > 0) {
+                    $primary   = $services->get(0);
+                    $secondary = $services->get(1);
+
+                    if ($primary) {
+                        $transaction->details()->create(['service_id' => $primary->id, 'weight' => round($bulkKg * 0.85, 1), 'unit_price' => $primary->price]);
+                    }
+                    if ($secondary) {
+                        $transaction->details()->create(['service_id' => $secondary->id, 'weight' => round($bulkKg * 0.15, 1), 'unit_price' => $secondary->price]);
+                    }
+                } elseif ($validated['tier_preference'] === 'Essential') {
+                    $transaction->details()->create(['service_id' => $services->get(0)->id, 'weight' => 2.5, 'unit_price' => $services->get(0)->price]);
+                    $transaction->details()->create(['service_id' => $services->get(1)->id, 'weight' => 1.0, 'unit_price' => $services->get(1)->price]);
+                } elseif ($validated['tier_preference'] === 'Signature') {
+                    $personalKg = $bulkKg > 0 ? $bulkKg : 7;
+                    $transaction->details()->create(['service_id' => $services->get(0)->id, 'weight' => round($personalKg * 0.7, 1), 'unit_price' => $services->get(0)->price]);
+                    $transaction->details()->create(['service_id' => $services->get(1)->id, 'weight' => round($personalKg * 0.3, 1), 'unit_price' => $services->get(1)->price]);
+                } elseif ($validated['tier_preference'] === 'Bespoke') {
+                    $personalKg = $bulkKg > 0 ? $bulkKg : 15;
+                    $transaction->details()->create(['service_id' => $services->get(0)->id, 'weight' => round($personalKg * 0.6, 1), 'unit_price' => $services->get(0)->price]);
+                    $transaction->details()->create(['service_id' => $services->get(2) ? $services->get(2)->id : $services->get(0)->id, 'weight' => round($personalKg * 0.4, 1), 'unit_price' => ($services->get(2) ?? $services->get(0))->price]);
+                }
+            }
+        }
+
+        $transaction->syncTotal();
 
         // Redirect: logged-in users go directly to their tracking page
         // Guests go to the generic success/confirmation page
@@ -173,7 +199,7 @@ class OrderController extends Controller
             'Artisanal Wash', 
             'Professional Pressing', 
             'Final Packaging', 
-            'Outbound Delivery'
+            'Completed'
         ];
 
         $dropoffStatuses = [
@@ -185,8 +211,9 @@ class OrderController extends Controller
         ];
 
         $statuses = ($transaction->delivery_method === 'collection') ? $collectionStatuses : $dropoffStatuses;
+        $hasReview = $transaction->review()->exists();
 
-        return view('portal.track', compact('transaction', 'statuses'));
+        return view('portal.track', compact('transaction', 'statuses', 'hasReview'));
     }
 
     public function advanceStatus($id)
@@ -199,7 +226,7 @@ class OrderController extends Controller
             'Artisanal Wash', 
             'Professional Pressing', 
             'Final Packaging', 
-            'Outbound Delivery'
+            'Completed'
         ];
 
         $dropoffStatuses = [
@@ -222,7 +249,7 @@ class OrderController extends Controller
 
         return response()->json([
             'status' => $transaction->laundry_status,
-            'is_completed' => $transaction->laundry_status === 'Outbound Delivery' || $transaction->laundry_status === 'Completed'
+            'is_completed' => $transaction->laundry_status === 'Completed'
         ]);
     }
 
@@ -243,7 +270,7 @@ class OrderController extends Controller
             'comment' => $validated['comment'],
         ]);
 
-        return redirect()->route('public.landing')->with('success', 'Thank you for your artisanal feedback!');
+        return redirect()->route('dashboard')->with('success', 'Thank you for your artisanal feedback!');
     }
 
     public function success($invoiceCode)

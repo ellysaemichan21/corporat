@@ -28,6 +28,8 @@ class TransactionResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
+        $employeeOption = fn ($record) => '<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:6px 0; min-width:0;"><img src="' . ($record->photo ? asset("storage/{$record->photo}") : "https://ui-avatars.com/api/?name=".urlencode($record->name)."&color=FFFFFF&background=18181b") . '" style="width:36px; height:36px; flex-shrink:0; border-radius:50%; object-fit:cover; border:1px solid #3f3f46; box-shadow:0 4px 6px -1px rgba(0, 0, 0, 0.1);" /><span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; width:100%; text-align:center; font-size:12px; font-weight:500;">' . e($record->name) . '</span></div>';
+
         return $schema
             ->components([
                 \Filament\Schemas\Components\Section::make('The Garment Manifest')
@@ -57,7 +59,18 @@ class TransactionResource extends Resource
                         \Filament\Forms\Components\Toggle::make('is_corporate')
                             ->label('Corporate / B2B Order')
                             ->inline(false)
-                            ->live(),
+                            ->live()
+                            ->afterStateUpdated(function ($state, callable $set, $record) {
+                                if ($record) {
+                                    $record->is_corporate = $state;
+                                    $record->syncTotal();
+                                    $set('subtotal', $record->subtotal);
+                                    $set('asap_surcharge', $record->asap_surcharge);
+                                    $set('delivery_fee', $record->delivery_fee);
+                                    $set('promo_discount', $record->promo_discount);
+                                    $set('total_price', $record->total_price);
+                                }
+                            }),
 
                         \Filament\Forms\Components\Select::make('partner_id')
                             ->relationship('partner', 'name')
@@ -76,15 +89,6 @@ class TransactionResource extends Resource
                             ])
                             ->default('Essential')
                             ->required(),
-
-                        // The Total Price (Managed by System)
-                        \Filament\Forms\Components\TextInput::make('total_price')
-                            ->label('Total Investment')
-                            ->helperText('This is automatically calculated based on weights and surcharges.')
-                            ->numeric()
-                            ->prefix('Rp')
-                            ->disabled()
-                            ->dehydrated(false),
 
                     ])->columns(3), // Increased columns to fit new fields nicely
 
@@ -117,56 +121,141 @@ class TransactionResource extends Resource
                             ->label('Priority Service (ASAP)')
                             ->inline(false)
                             ->onIcon('heroicon-m-bolt')
-                            ->offIcon('heroicon-m-clock'),
+                            ->offIcon('heroicon-m-clock')
+                            ->live()
+                            ->afterStateUpdated(function ($state, callable $set, $record) {
+                                if ($record) {
+                                    $record->is_priority = $state;
+                                    $record->syncTotal();
+                                    $set('subtotal', $record->subtotal);
+                                    $set('asap_surcharge', $record->asap_surcharge);
+                                    $set('delivery_fee', $record->delivery_fee);
+                                    $set('promo_discount', $record->promo_discount);
+                                    $set('total_price', $record->total_price);
+                                }
+                            }),
 
-                        \Filament\Forms\Components\Toggle::make('is_fast_track')
-                            ->label('Fast Track Surcharge (30%)')
-                            ->inline(false)
-                            ->onIcon('heroicon-m-sparkles')
-                            ->offIcon('heroicon-m-no-symbol'),
-
-                    ])->columns(4),
+                    ])->columns(3),
 
                 \Filament\Schemas\Components\Section::make('Chain of Custody (Employee Tracking)')
                     ->description('Personnel involved in this garment journey (Auto-Assigned).')
                     ->schema([
                         \Filament\Forms\Components\Select::make('driver_id')
                             ->relationship('driver', 'name')
-                            ->label('Outbound Collector')
-                            ->placeholder('Assigned on Dispatch')
+                            ->label('Pickup Driver (Inbound)')
+                            ->placeholder('No Pickup Needed')
+                            ->getOptionLabelFromRecordUsing($employeeOption)
+                            ->allowHtml()
                             ->disabled(),
 
                         \Filament\Forms\Components\Select::make('delivery_driver_id')
                             ->relationship('delivery_driver', 'name')
-                            ->label('Inbound Courier')
-                            ->placeholder('Assigned on Delivery')
+                            ->label('Delivery Driver (Outbound)')
+                            ->placeholder('No Delivery Needed')
+                            ->getOptionLabelFromRecordUsing($employeeOption)
+                            ->allowHtml()
                             ->disabled(),
 
                         \Filament\Forms\Components\Select::make('sorter_id')
                             ->relationship('sorter', 'name')
                             ->label('Intake Sorter')
                             ->placeholder('Assigned on Intake')
+                            ->getOptionLabelFromRecordUsing($employeeOption)
+                            ->allowHtml()
                             ->disabled(),
 
                         \Filament\Forms\Components\Select::make('washer_id')
                             ->relationship('washer', 'name')
                             ->label('Primary Washer')
                             ->placeholder('Assigned on Purification')
+                            ->getOptionLabelFromRecordUsing($employeeOption)
+                            ->allowHtml()
                             ->disabled(),
 
                         \Filament\Forms\Components\Select::make('presser_id')
                             ->relationship('presser', 'name')
                             ->label('Artisanal Presser')
                             ->placeholder('Assigned on Ironing')
+                            ->getOptionLabelFromRecordUsing($employeeOption)
+                            ->allowHtml()
                             ->disabled(),
 
                         \Filament\Forms\Components\Select::make('packer_id')
                             ->relationship('packer', 'name')
                             ->label('Quality Packer')
                             ->placeholder('Assigned on QC')
+                            ->getOptionLabelFromRecordUsing($employeeOption)
+                            ->allowHtml()
                             ->disabled(),
 
-                    ])->columns(6),
+                    ])->columns(3),
+
+                \Filament\Schemas\Components\Section::make('Financial Breakdown')
+                    ->description('Honest and visible pricing details.')
+                    ->schema([
+                        \Filament\Forms\Components\Select::make('promo_id')
+                            ->relationship('promo', 'code')
+                            ->label('Apply Promo Code')
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->afterStateUpdated(function ($state, callable $set, $record) {
+                                if ($record) {
+                                    $record->promo_id = $state;
+                                    $record->syncTotal();
+                                    $set('subtotal', $record->subtotal);
+                                    $set('asap_surcharge', $record->asap_surcharge);
+                                    $set('delivery_fee', $record->delivery_fee);
+                                    $set('promo_discount', $record->promo_discount);
+                                    $set('total_price', $record->total_price);
+                                }
+                            }),
+                            
+                        \Filament\Forms\Components\TextInput::make('subtotal')
+                            ->label('Garment Subtotal')
+                            ->numeric()
+                            ->prefix('Rp')
+                            ->default(0)
+                            ->disabled()
+                            ->dehydrated(false),
+                            
+                        \Filament\Forms\Components\TextInput::make('asap_surcharge')
+                            ->label('ASAP Surcharge')
+                            ->numeric()
+                            ->prefix('Rp')
+                            ->default(0)
+                            ->disabled()
+                            ->dehydrated(false),
+                            
+                        \Filament\Forms\Components\TextInput::make('delivery_fee')
+                            ->label('Delivery Cost')
+                            ->numeric()
+                            ->prefix('Rp')
+                            ->default(0)
+                            ->disabled()
+                            ->dehydrated(false),
+                            
+                        \Filament\Forms\Components\TextInput::make('promo_discount')
+                            ->label('Promo Cut')
+                            ->numeric()
+                            ->prefix('-Rp')
+                            ->default(0)
+                            ->disabled()
+                            ->dehydrated(false),
+                            
+                        \Filament\Forms\Components\TextInput::make('total_price')
+                            ->label('Grand Total')
+                            ->numeric()
+                            ->prefix('Rp')
+                            ->default(0)
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->extraInputAttributes(['style' => 'font-weight: bold; font-size: 1.1em; color: var(--primary-600);']),
+                    ])->columns([
+                        'default' => 1,
+                        'md' => 2,
+                        'lg' => 3,
+                    ]),
             ]);
     }
 

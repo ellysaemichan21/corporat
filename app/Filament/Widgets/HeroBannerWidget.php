@@ -24,7 +24,7 @@ class HeroBannerWidget extends Widget
     {
         return [
             'orders'      => Transaction::count(),
-            'active'      => Transaction::whereNotIn('laundry_status', ['Completed', 'Cancelled'])->count(),
+            'active'      => Transaction::whereIn('laundry_status', ['Sorting & QC', 'Washing', 'Drying', 'Ironing'])->count(),
             'revenue'     => Transaction::where('total_price', '>', 0)->sum('total_price'),
             'partners'    => Partner::count(),
             'pending'     => Transaction::whereIn('laundry_status', ['Pending', 'Processing', 'Ready'])->count(),

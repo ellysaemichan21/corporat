@@ -70,6 +70,7 @@ class DetailsRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('id')
+            ->description(fn ($livewire) => 'Delivery Fee: Rp ' . number_format($livewire->ownerRecord->delivery_fee ?? 0, 0, ',', '.') . ' | ASAP Surcharge: Rp ' . number_format($livewire->ownerRecord->asap_surcharge ?? 0, 0, ',', '.') . ' | Promo Cut: -Rp ' . number_format($livewire->ownerRecord->promo_discount ?? 0, 0, ',', '.') . ' | GRAND TOTAL: Rp ' . number_format($livewire->ownerRecord->total_price ?? 0, 0, ',', '.'))
             ->columns([
                 TextColumn::make('service.name')
                     ->label('Service')

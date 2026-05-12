@@ -117,10 +117,10 @@
                 <span class="text-[10px] text-amber-500 font-bold uppercase tracking-[0.2em]">{{ __('Auto-Simulate Mode Active') }}</span>
             </div>
 
-            @if($transaction->is_fast_track)
+            @if($transaction->is_priority)
                 <div class="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.2)]">
                     <span class="text-xs">⚡</span>
-                    <span class="text-[10px] text-blue-400 font-bold uppercase tracking-[0.2em]">{{ __('Priority Processing') }}</span>
+                    <span class="text-[10px] text-blue-400 font-bold uppercase tracking-[0.2em]">{{ __('ASAP Priority') }}</span>
                 </div>
             @endif
         </div>
@@ -151,12 +151,18 @@
                                 </div>
                                 <div>
                                     <p class="text-sm font-bold text-white tracking-wide uppercase">{{ $detail->service->name }}</p>
-                                    <p class="text-[10px] text-zinc-500 uppercase tracking-widest">{{ __('Weight:') }} {{ number_format($detail->weight, 1) }} Kg</p>
+                                    <p class="text-[10px] text-zinc-500 uppercase tracking-widest">
+                                        @if($detail->service->unit_type === 'kg')
+                                            {{ __('Weight:') }} {{ number_format($detail->weight, 1) }} Kg
+                                        @else
+                                            {{ __('Quantity:') }} {{ number_format($detail->weight, 0) }} Pcs
+                                        @endif
+                                    </p>
                                 </div>
                             </div>
                             <div class="text-right">
                                 <p class="text-sm font-mono text-zinc-300">Rp {{ number_format($detail->weight * $detail->unit_price, 0, ',', '.') }}</p>
-                                <p class="text-[9px] text-zinc-600 uppercase tracking-widest">Rp {{ number_format($detail->unit_price, 0, ',', '.') }} / Kg</p>
+                                <p class="text-[9px] text-zinc-600 uppercase tracking-widest">Rp {{ number_format($detail->unit_price, 0, ',', '.') }} / {{ $detail->service->unit_type === 'kg' ? 'Kg' : 'Pcs' }}</p>
                             </div>
                         </div>
                     @endforeach
@@ -164,14 +170,43 @@
 
                 <div class="mt-8 pt-8 border-t border-zinc-800 flex flex-col gap-4">
                     <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">{{ __('Official Intake Weight') }}</span>
-                        <span class="text-sm font-bold text-white uppercase tracking-widest">{{ number_format($transaction->total_weight, 1) }} Kg</span>
+                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">{{ __('Official Intake Volume') }}</span>
+                        <span class="text-sm font-bold text-white uppercase tracking-widest">
+                            @php
+                                $kgTotal = $transaction->details->where('service.unit_type', 'kg')->sum('weight');
+                                $pcsTotal = $transaction->details->where('service.unit_type', '!=', 'kg')->sum('weight');
+                            @endphp
+                            @if($kgTotal > 0) {{ number_format($kgTotal, 1) }} Kg @endif
+                            @if($kgTotal > 0 && $pcsTotal > 0) + @endif
+                            @if($pcsTotal > 0) {{ number_format($pcsTotal, 0) }} Pcs @endif
+                        </span>
                     </div>
 
-                    @if($transaction->is_fast_track)
-                        <div class="flex justify-between items-center text-blue-400">
-                            <span class="text-[10px] font-bold uppercase tracking-[0.2em]">{{ __('Fast Track Surcharge (30%)') }}</span>
-                            <span class="text-sm font-mono font-bold">+ Rp {{ number_format($transaction->total_price - ($transaction->total_price / 1.3), 0, ',', '.') }}</span>
+                    @if($transaction->delivery_fee > 0)
+                        <div class="flex justify-between items-center text-zinc-300">
+                            <span class="text-[10px] font-bold uppercase tracking-[0.2em]">{{ __('Delivery & Transport') }}</span>
+                            <span class="text-sm font-mono font-bold">+ Rp {{ number_format($transaction->delivery_fee, 0, ',', '.') }}</span>
+                        </div>
+                    @endif
+
+                    @if($transaction->asap_surcharge > 0)
+                        <div class="flex justify-between items-center text-amber-500">
+                            <span class="text-[10px] font-bold uppercase tracking-[0.2em]">{{ __('ASAP Priority Surcharge') }}</span>
+                            <span class="text-sm font-mono font-bold">+ Rp {{ number_format($transaction->asap_surcharge, 0, ',', '.') }}</span>
+                        </div>
+                    @endif
+
+                    @if($transaction->promo_discount > 0)
+                        {{-- Total Before Promo --}}
+                        <div class="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
+                            <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">{{ __('Total Before Promo') }}</span>
+                            <span class="text-sm font-mono font-bold text-zinc-300">Rp {{ number_format($transaction->total_price + $transaction->promo_discount, 0, ',', '.') }}</span>
+                        </div>
+
+                        {{-- Promo Cut --}}
+                        <div class="flex justify-between items-center text-emerald-400">
+                            <span class="text-[10px] font-bold uppercase tracking-[0.2em]">{{ __('Promo Applied') }}</span>
+                            <span class="text-sm font-mono font-bold">- Rp {{ number_format($transaction->promo_discount, 0, ',', '.') }}</span>
                         </div>
                     @endif
 
@@ -180,8 +215,8 @@
                             <span class="text-xs font-bold text-white uppercase tracking-[0.3em]">{{ __('Final Invoice') }}</span>
                             <div class="flex items-center gap-3 mt-1">
                                 <span class="text-2xl font-serif font-bold text-amber-500">Rp {{ number_format($transaction->total_price, 0, ',', '.') }}</span>
-                                <span class="px-2 py-0.5 bg-red-500/10 border border-red-500/20 text-red-500 text-[8px] font-bold uppercase tracking-widest rounded-sm">
-                                    {{ __('Status: Unpaid') }}
+                                <span class="px-2 py-0.5 rounded-sm text-[8px] font-bold uppercase tracking-widest border {{ $transaction->payment_status === 'Paid' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-red-500/10 border-red-500/20 text-red-500' }}">
+                                    {{ __('Status:') }} {{ __($transaction->payment_status) }}
                                 </span>
                             </div>
                         </div>
@@ -278,8 +313,9 @@
         const statuses = @json($statuses);
         let currentIndex = {{ $currentIndex }};
         
-        // If already completed, show modal immediately
-        if (statuses[currentIndex] === 'Outbound Delivery' || statuses[currentIndex] === 'Completed') {
+        // If already completed and NO review yet, show modal immediately
+        const hasReview = @json($hasReview);
+        if ((statuses[currentIndex] === 'Outbound Delivery' || statuses[currentIndex] === 'Completed') && !hasReview) {
             setTimeout(showReviewModal, 1000);
             return;
         }
@@ -323,7 +359,7 @@
                             }, 500);
                         }
 
-                        if (data.is_completed) {
+                        if (data.is_completed && !hasReview) {
                             clearInterval(simulationInterval);
                             setTimeout(showReviewModal, 2000);
                         }

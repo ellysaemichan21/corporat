@@ -253,7 +253,7 @@
                 
                 function initParticles() {
                     particlesArray = [];
-                    for (let i = 0; i < 100; i++) { // More particles
+                    for (let i = 0; i < 40; i++) { // Optimized particle count
                         particlesArray.push(new Particle());
                     }
                 }
@@ -301,18 +301,25 @@
             const heroContent = document.getElementById('parallax-content');
             
             if (hero) {
+                let ticking = false;
                 hero.addEventListener('mousemove', (e) => {
-                    // Calculate mouse position relative to center of screen
-                    const x = (window.innerWidth / 2 - e.clientX) / 30;
-                    const y = (window.innerHeight / 2 - e.clientY) / 30;
-                    
-                    // Move background subtly in opposite direction
-                    if (heroBg) {
-                        heroBg.style.transform = `translate(${x * 0.5}px, ${y * 0.5}px) scale(1.05)`;
-                    }
-                    // Move content slightly in same direction to create 3D glass depth
-                    if (heroContent) {
-                        heroContent.style.transform = `translate(${x * -0.8}px, ${y * -0.8}px)`;
+                    if (!ticking) {
+                        window.requestAnimationFrame(() => {
+                            // Calculate mouse position relative to center of screen
+                            const x = (window.innerWidth / 2 - e.clientX) / 30;
+                            const y = (window.innerHeight / 2 - e.clientY) / 30;
+                            
+                            // Move background subtly in opposite direction
+                            if (heroBg) {
+                                heroBg.style.transform = `translate(${x * 0.5}px, ${y * 0.5}px) scale(1.05)`;
+                            }
+                            // Move content slightly in same direction to create 3D glass depth
+                            if (heroContent) {
+                                heroContent.style.transform = `translate(${x * -0.8}px, ${y * -0.8}px)`;
+                            }
+                            ticking = false;
+                        });
+                        ticking = true;
                     }
                 });
                 
