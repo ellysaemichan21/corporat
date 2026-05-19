@@ -157,10 +157,12 @@ class OrderController extends Controller
                     $secondary = $services->get(1);
 
                     if ($primary) {
-                        $transaction->details()->create(['service_id' => $primary->id, 'weight' => round($bulkKg * 0.85, 1), 'unit_price' => $primary->price]);
+                        $precision = $primary->unit_type === 'kg' ? 1 : 0;
+                        $transaction->details()->create(['service_id' => $primary->id, 'weight' => round($bulkKg * 0.85, $precision), 'unit_price' => $primary->price]);
                     }
                     if ($secondary) {
-                        $transaction->details()->create(['service_id' => $secondary->id, 'weight' => round($bulkKg * 0.15, 1), 'unit_price' => $secondary->price]);
+                        $precision = $secondary->unit_type === 'kg' ? 1 : 0;
+                        $transaction->details()->create(['service_id' => $secondary->id, 'weight' => round($bulkKg * 0.15, $precision), 'unit_price' => $secondary->price]);
                     }
                 } elseif ($validated['tier_preference'] === 'Essential') {
                     $transaction->details()->create(['service_id' => $services->get(0)->id, 'weight' => 2.5, 'unit_price' => $services->get(0)->price]);

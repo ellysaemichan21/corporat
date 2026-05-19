@@ -28,6 +28,9 @@ class Transaction extends Model
         });
 
         static::saving(function (Transaction $transaction) {
+            if (empty($transaction->customer_name) && $transaction->customer_id) {
+                $transaction->customer_name = $transaction->customer->name;
+            }
             $transaction->recalculatePricing();
         });
     }
@@ -54,7 +57,9 @@ class Transaction extends Model
 
     public function getTotalWeightAttribute()
     {
-        return $this->details->sum('weight');
+        return $this->details->sum(function ($detail) {
+            return strtolower($detail->service->unit_type ?? 'kg') === 'kg' ? ($detail->weight ?? 0) : 0;
+        });
     }
 
     /**
@@ -82,8 +87,8 @@ class Transaction extends Model
         $totalWeight = $this->total_weight;
         $deliveryFee = 0;
         
-        // Only calculate delivery fee if delivery method is not 'dropoff' (walk-in)
-        if ($this->delivery_method !== 'dropoff') {
+        // Only calculate delivery fee if delivery method is not 'dropoff' (walk-in) and subtotal > 0
+        if ($subtotal > 0 && $this->delivery_method !== 'dropoff') {
             if ($this->is_corporate) {
                 if ($totalWeight <= 50) {
                     $deliveryFee = 250000;
@@ -121,6 +126,9 @@ class Transaction extends Model
             } else {
                 $promoDiscount = $promo->value;
             }
+        } elseif ($this->is_corporate) {
+            // Auto 15% discount for corporate bulk orders
+            $promoDiscount = $grandTotal * 0.15;
         }
 
         $grandTotal -= $promoDiscount;

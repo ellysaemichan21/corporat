@@ -6,8 +6,6 @@ use App\Filament\Resources\Transactions\Pages\CreateTransaction;
 use App\Filament\Resources\Transactions\Pages\EditTransaction;
 use App\Filament\Resources\Transactions\Pages\ListTransactions;
 use App\Filament\Resources\Transactions\RelationManagers\DetailsRelationManager;
-use App\Filament\Resources\Transactions\RelationManagers\ImagesRelationManager;
-use App\Filament\Resources\Transactions\RelationManagers\LogsRelationManager;
 use App\Filament\Resources\Transactions\Schemas\TransactionForm;
 use App\Filament\Resources\Transactions\Tables\TransactionsTable;
 use App\Models\Transaction;
@@ -268,8 +266,6 @@ class TransactionResource extends Resource
     {
         return [
             DetailsRelationManager::class,
-            LogsRelationManager::class,
-            ImagesRelationManager::class,
         ];
     }
 

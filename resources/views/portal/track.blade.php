@@ -155,7 +155,7 @@
                                         @if($detail->service->unit_type === 'kg')
                                             {{ __('Weight:') }} {{ number_format($detail->weight, 1) }} Kg
                                         @else
-                                            {{ __('Quantity:') }} {{ number_format($detail->weight, 0) }} Pcs
+                                            {{ __('Quantity:') }} {{ (float) $detail->weight }} Pcs
                                         @endif
                                     </p>
                                 </div>
@@ -178,7 +178,7 @@
                             @endphp
                             @if($kgTotal > 0) {{ number_format($kgTotal, 1) }} Kg @endif
                             @if($kgTotal > 0 && $pcsTotal > 0) + @endif
-                            @if($pcsTotal > 0) {{ number_format($pcsTotal, 0) }} Pcs @endif
+                            @if($pcsTotal > 0) {{ (float) $pcsTotal }} Pcs @endif
                         </span>
                     </div>
 
@@ -205,7 +205,9 @@
 
                         {{-- Promo Cut --}}
                         <div class="flex justify-between items-center text-emerald-400">
-                            <span class="text-[10px] font-bold uppercase tracking-[0.2em]">{{ __('Promo Applied') }}</span>
+                            <span class="text-[10px] font-bold uppercase tracking-[0.2em]">
+                                {{ $transaction->is_corporate && !$transaction->promo_id ? __('Corporate Discount (15%)') : __('Promo Applied') }}
+                            </span>
                             <span class="text-sm font-mono font-bold">- Rp {{ number_format($transaction->promo_discount, 0, ',', '.') }}</span>
                         </div>
                     @endif

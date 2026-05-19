@@ -26,7 +26,7 @@ class TransactionsTable
                     ->falseIcon('heroicon-o-user')
                     ->color(fn (bool $state): string => $state ? 'blue' : 'gray'),
                 \Filament\Tables\Columns\TextColumn::make('invoice_code')->searchable()->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('customer.name')
+                \Filament\Tables\Columns\TextColumn::make('customer_name')
                     ->label('Client Name')
                     ->searchable()
                     ->sortable(),

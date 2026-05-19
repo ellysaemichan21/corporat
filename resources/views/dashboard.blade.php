@@ -60,7 +60,18 @@
                                 <div class="flex items-center justify-between pt-6 border-t border-zinc-800">
                                     <div class="flex flex-col">
                                         <span class="text-[9px] text-zinc-600 uppercase tracking-widest mb-1">{{ __('Total Est.') }}</span>
-                                        <span class="text-sm font-mono text-zinc-300">Rp {{ number_format($tx->total_price, 0, ',', '.') }}</span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-sm font-mono text-zinc-300">Rp {{ number_format($tx->total_price, 0, ',', '.') }}</span>
+                                            @if($tx->promo_discount > 0)
+                                                @php
+                                                    $discountLabel = $tx->is_corporate && !$tx->promo_id ? '-15%' : 'PROMO';
+                                                    if ($tx->promo_id && $tx->promo) {
+                                                        $discountLabel = in_array($tx->promo->type ?? '', ['percent', 'percentage']) ? '-' . (int)$tx->promo->value . '%' : 'PROMO';
+                                                    }
+                                                @endphp
+                                                <span class="px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[8px] font-bold uppercase rounded-sm">{{ $discountLabel }}</span>
+                                            @endif
+                                        </div>
                                     </div>
                                     <a href="{{ route('portal.track', $tx->id) }}" class="flex items-center gap-2 text-[10px] font-bold text-amber-500 uppercase tracking-widest group-hover:gap-3 transition-all">
                                         {{ __('Track Status') }}
@@ -101,7 +112,18 @@
                                     <td class="px-6 py-4 text-xs text-zinc-400">{{ $tx->created_at->format('d/m/Y') }}</td>
                                     <td class="px-6 py-4 text-xs font-mono text-zinc-500">{{ $tx->invoice_code }}</td>
                                     <td class="px-6 py-4 text-sm font-medium text-white">{{ $tx->customer_name }}</td>
-                                    <td class="px-6 py-4 text-xs font-mono text-zinc-400">Rp {{ number_format($tx->total_price, 0, ',', '.') }}</td>
+                                    <td class="px-6 py-4 text-xs font-mono text-zinc-400">
+                                        Rp {{ number_format($tx->total_price, 0, ',', '.') }}
+                                        @if($tx->promo_discount > 0)
+                                            @php
+                                                $discountLabel = $tx->is_corporate && !$tx->promo_id ? '-15%' : 'PROMO';
+                                                if ($tx->promo_id && $tx->promo) {
+                                                    $discountLabel = in_array($tx->promo->type ?? '', ['percent', 'percentage']) ? '-' . (int)$tx->promo->value . '%' : 'PROMO';
+                                                }
+                                            @endphp
+                                            <span class="ml-2 px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[8px] font-bold uppercase rounded-sm">{{ $discountLabel }}</span>
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-4 text-right">
                                         <a href="{{ route('portal.track', $tx->id) }}" class="text-[9px] font-bold text-zinc-500 hover:text-amber-500 uppercase tracking-widest transition-colors">
                                             {{ __('Details') }}
