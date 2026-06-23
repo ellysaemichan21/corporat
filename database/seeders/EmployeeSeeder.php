@@ -10,8 +10,9 @@ class EmployeeSeeder extends Seeder
 {
     public function run(): void
     {
-        // Empty all employees data
+        \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
         DB::table('employees')->truncate();
+        \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
 
         $karyawans = [
             // --- SHIFT 1 ---
