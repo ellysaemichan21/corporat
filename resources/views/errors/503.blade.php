@@ -1,141 +1,219 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maintenance in Progress | LaundryApp</title>
+    <title>System Maintenance | Felix Elite Garment Care</title>
+    <link rel="icon" type="image/png" href="{{ asset('test/images/logo.png') }}">
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700|playfair-display:400,600,700" rel="stylesheet" />
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background-color: #09090b; /* zinc-950 */
+            color: #fafafa; /* zinc-50 */
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #333;
-        }
-
-        .container {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 4rem 3rem;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             text-align: center;
-            max-width: 450px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.5);
-            animation: fadeIn 1s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .icon-wrapper {
-            margin-bottom: 2rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* Animated Washing Machine CSS Art */
-        .washing-machine {
-            width: 80px;
-            height: 100px;
-            background: white;
-            border: 4px solid #4a90e2;
-            border-radius: 12px;
-            position: relative;
-            box-shadow: 0 10px 20px rgba(74, 144, 226, 0.2);
-        }
-
-        .washing-machine::before {
-            content: '';
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            height: 15px;
-            background: #e2e8f0;
-            border-radius: 4px;
-        }
-
-        .drum {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #cbd5e1;
-            border-radius: 50%;
-            position: absolute;
-            bottom: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #f1f5f9;
             overflow: hidden;
         }
 
-        .water {
-            position: absolute;
-            bottom: -5px;
-            left: -20px;
-            width: 100px;
-            height: 30px;
-            background: rgba(74, 144, 226, 0.6);
-            animation: spin 3s infinite linear;
-            border-radius: 40%;
-            transform-origin: center top;
+        h1, h2, .font-serif {
+            font-family: 'Playfair Display', serif;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .luxury-gradient {
+            background: linear-gradient(135deg, #d4af37 0%, #aa8529 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.15); /* Subtle gold border */
+            padding: 4rem 3rem;
+            border-radius: 2px; /* Sharp corners for premium feel */
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            max-width: 600px;
+            backdrop-filter: blur(12px);
+            animation: fadeInUp 1s ease-out forwards;
+            position: relative;
+            z-index: 10;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-wrapper {
+            margin-bottom: 2.5rem;
+        }
+
+        .logo-wrapper img {
+            height: 60px;
+            object-fit: contain;
+            opacity: 0.9;
+            margin: 0 auto;
         }
 
         h1 {
-            font-size: 2rem;
-            font-weight: 700;
+            font-size: 2.5rem;
+            font-weight: 600;
             margin-bottom: 1rem;
-            color: #1e293b;
+            letter-spacing: 0.02em;
         }
 
         p {
-            font-size: 1.05rem;
-            line-height: 1.6;
-            color: #64748b;
-            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            line-height: 1.7;
+            color: #a1a1aa; /* zinc-400 */
+            margin-bottom: 2rem;
+            font-weight: 300;
         }
 
         .badge {
             display: inline-block;
-            background: #e0f2fe;
-            color: #0369a1;
-            padding: 0.4rem 1rem;
+            background: rgba(212, 175, 55, 0.1);
+            color: #d4af37;
+            padding: 0.4rem 1.2rem;
             border-radius: 9999px;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 1rem;
+            letter-spacing: 0.15em;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        /* Ambient Golden Particles */
+        #luxury-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 2rem;
+            border: 2px solid rgba(212, 175, 55, 0.2);
+            border-top-color: #d4af37;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .contact-info {
+            font-size: 0.85rem;
+            color: #71717a; /* zinc-500 */
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .contact-info a {
+            color: #d4af37;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        
+        .contact-info a:hover {
+            opacity: 0.8;
         }
     </style>
 </head>
 <body>
+    <canvas id="luxury-particles"></canvas>
+
     <div class="container">
-        <div class="icon-wrapper">
-            <div class="washing-machine">
-                <div class="drum">
-                    <div class="water"></div>
-                </div>
-            </div>
+        <div class="logo-wrapper">
+            <img src="{{ asset('test/images/logo.png') }}" alt="Felix Elite Garment Care">
         </div>
-        <div class="badge">System Update</div>
-        <h1>We're Freshening Up!</h1>
-        <p>Our laundry app is currently undergoing scheduled maintenance to bring you a smoother and cleaner experience. We'll be back online shortly.</p>
-        <p style="font-size: 0.9rem; color: #94a3b8;">Thank you for your patience!</p>
+        
+        <div class="spinner"></div>
+
+        <div class="badge">Scheduled Maintenance</div>
+        
+        <h1 class="luxury-gradient">Elevating Your Experience</h1>
+        
+        <p>Felix Elite Garment Care is currently undergoing scheduled system enhancements to ensure our bespoke services continue to exceed your expectations. Our digital boutique will return shortly.</p>
+        
+        <div class="contact-info">
+            For urgent concierge inquiries, please contact your dedicated account manager. <br>
+            &copy; {{ date('Y') }} Felix Elite. All rights reserved.
+        </div>
     </div>
+
+    <script>
+        // Ambient Golden Particles
+        const canvas = document.getElementById('luxury-particles');
+        const ctx = canvas.getContext('2d');
+        let particlesArray;
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = Math.random() * 0.4 - 0.2;
+                this.speedY = Math.random() * 0.6 - 0.6;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width || this.y < 0) {
+                    this.x = Math.random() * canvas.width;
+                    this.y = canvas.height;
+                    this.size = Math.random() * 2 + 0.5;
+                }
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(212, 175, 55, 0.7)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        function initParticles() {
+            particlesArray = [];
+            for (let i = 0; i < 50; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
+        initParticles();
+        
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+                particlesArray[i].draw();
+            }
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initParticles();
+        });
+    </script>
 </body>
 </html>
